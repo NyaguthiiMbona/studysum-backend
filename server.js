@@ -3,16 +3,31 @@ const { Configuration, OpenAIApi } = require("openai");
 const bodyParser = require('body-parser');
 
 const app = express();
+
+// ✅ Add CORS headers for all requests
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
 app.use(bodyParser.json());
 
-// Replace this key with your own OpenRouter or Hugging Face key later
+// 🧠 Connect to OpenRouter.ai
 const configuration = new Configuration({
-  apiKey: "EMPTY", // Demo key – replace with real one in production
+  apiKey: process.env.OPENAI_API_KEY || "EMPTY",
   basePath: "https://openrouter.ai/api/v1 ",
 });
 
 const openai = new OpenAIApi(configuration);
 
+// 🔁 Summary endpoint
 app.post('/summarize', async (req, res) => {
   const { text, subject } = req.body;
 
@@ -23,23 +38,24 @@ app.post('/summarize', async (req, res) => {
   try {
     let prompt = "";
 
+    // 🎯 Subject-based prompts
     if (subject === "Biology" || subject === "Physics") {
       prompt = `Generate a bullet-point summary of this ${subject} lecture:\n\n${text}`;
     } else if (subject === "History") {
-      prompt = `Chronological summary of this historical event:\n\n${text}`;
+      prompt = `Chronological summary of historical event:\n\n${text}`;
     } else if (subject === "Computer Science") {
-      prompt = `Explain main concepts, code snippets, and logic:\n\n${text}`;
+      prompt = `Explain the main concepts and code references from this CS lecture:\n\n${text}`;
     } else if (subject === "Math") {
-      prompt = `Explain formulas and problems clearly:\n\n${text}`;
+      prompt = `Explain formulas and solutions clearly:\n\n${text}`;
     } else {
-      prompt = `Create a structured summary in clear points:\n\nSubject: ${subject}\n\nTranscript:\n${text}`;
+      prompt = `Create a structured summary of this ${subject} transcript:\n\n${text}`;
     }
 
     const response = await openai.createCompletion({
-      model: "mistralai/mistral-7b-instruct:free", // Free model
+      model: "mistralai/mistral-7b-instruct:free",
       prompt: prompt,
       max_tokens: 300,
-      temperature: 0.5,
+      temperature: 0.5
     });
 
     const summary = response.data.choices[0].text.trim();
@@ -50,6 +66,7 @@ app.post('/summarize', async (req, res) => {
   }
 });
 
+// 🚀 Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
