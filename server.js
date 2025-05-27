@@ -5,9 +5,9 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// Replace with your own key later
+// Replace this key with your own OpenRouter or Hugging Face key later
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY || "EMPTY", // We'll set real key soon
+  apiKey: "EMPTY", // Demo key – replace with real one in production
   basePath: "https://openrouter.ai/api/v1 ",
 });
 
@@ -21,7 +21,19 @@ app.post('/summarize', async (req, res) => {
   }
 
   try {
-    let prompt = `Generate a structured summary of this ${subject} lecture:\n\n${text}`;
+    let prompt = "";
+
+    if (subject === "Biology" || subject === "Physics") {
+      prompt = `Generate a bullet-point summary of this ${subject} lecture:\n\n${text}`;
+    } else if (subject === "History") {
+      prompt = `Chronological summary of this historical event:\n\n${text}`;
+    } else if (subject === "Computer Science") {
+      prompt = `Explain main concepts, code snippets, and logic:\n\n${text}`;
+    } else if (subject === "Math") {
+      prompt = `Explain formulas and problems clearly:\n\n${text}`;
+    } else {
+      prompt = `Create a structured summary in clear points:\n\nSubject: ${subject}\n\nTranscript:\n${text}`;
+    }
 
     const response = await openai.createCompletion({
       model: "mistralai/mistral-7b-instruct:free", // Free model
