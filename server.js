@@ -14,7 +14,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// AI Setup – Use Claude 3 Haiku or GPT-4o
+// AI Setup – Use Claude or GPT-4o via OpenRouter
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY || "EMPTY",
   basePath: "https://openrouter.ai/api/v1 "
@@ -55,7 +55,7 @@ async function summarizeChunk(chunk, subject) {
   return response.data.choices[0].text.trim();
 }
 
-// Main Endpoint
+// Main Summary Endpoint
 app.post('/summarize', async (req, res) => {
   const { text, subject } = req.body;
 
@@ -69,7 +69,6 @@ app.post('/summarize', async (req, res) => {
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
-      const chunkPrompt = `Summarize part ${i + 1} of a long ${subject} lecture:\n\n${chunk}`;
       try {
         const summary = await summarizeChunk(chunk, subject);
         summaries.push(`### Part ${i + 1}\n\n${summary}`);
